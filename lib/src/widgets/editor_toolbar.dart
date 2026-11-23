@@ -608,101 +608,103 @@ class _ShapesMenuButton extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final isShapeTool = controller.activeTool == PdfToolType.shape;
 
-    return PopupMenuButton<ShapeType>(
-      tooltip: 'Shapes',
-      offset: const Offset(0, 36),
-      elevation: 6,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: isDark ? Colors.white12 : Colors.grey.shade300),
-      ),
-      color: isDark ? const Color(0xFF222225) : Colors.white,
-      initialValue: controller.currentShapeType,
-      onSelected: (ShapeType type) {
-        controller.setTool(PdfToolType.shape);
-        controller.setShapeType(type);
-      },
-      child: Container(
-        width: 36,
-        height: 30,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isShapeTool
-              ? (isDark ? theme.colorScheme.primary.withOpacity(0.3) : Colors.white)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-          boxShadow: isShapeTool
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
-                  )
-                ]
-              : null,
+    return Material(
+      child: PopupMenuButton<ShapeType>(
+        tooltip: 'Shapes',
+        offset: const Offset(0, 36),
+        elevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(color: isDark ? Colors.white12 : Colors.grey.shade300),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _iconForShape(controller.currentShapeType),
-              size: 16,
-              color: isShapeTool
-                  ? theme.colorScheme.primary
-                  : (isDark ? Colors.white70 : Colors.grey.shade700),
+        color: isDark ? const Color(0xFF222225) : Colors.white,
+        initialValue: controller.currentShapeType,
+        onSelected: (ShapeType type) {
+          controller.setTool(PdfToolType.shape);
+          controller.setShapeType(type);
+        },
+        child: Container(
+          width: 36,
+          height: 30,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isShapeTool
+                ? (isDark ? theme.colorScheme.primary.withOpacity(0.3) : Colors.white)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+            boxShadow: isShapeTool
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    )
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                _iconForShape(controller.currentShapeType),
+                size: 16,
+                color: isShapeTool
+                    ? theme.colorScheme.primary
+                    : (isDark ? Colors.white70 : Colors.grey.shade700),
+              ),
+              Icon(
+                Icons.arrow_drop_down,
+                size: 14,
+                color: isShapeTool
+                    ? theme.colorScheme.primary
+                    : (isDark ? Colors.white38 : Colors.grey.shade500),
+              ),
+            ],
+          ),
+        ),
+        itemBuilder: (context) => [
+          const PopupMenuItem(
+            value: ShapeType.rectangle,
+            child: Row(
+              children: [
+                Icon(Icons.rectangle_outlined, size: 18),
+                SizedBox(width: 8),
+                Text('Rectangle'),
+              ],
             ),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 14,
-              color: isShapeTool
-                  ? theme.colorScheme.primary
-                  : (isDark ? Colors.white38 : Colors.grey.shade500),
+          ),
+          const PopupMenuItem(
+            value: ShapeType.circle,
+            child: Row(
+              children: [
+                Icon(Icons.circle_outlined, size: 18),
+                SizedBox(width: 8),
+                Text('Circle / Oval'),
+              ],
             ),
-          ],
-        ),
+          ),
+          const PopupMenuItem(
+            value: ShapeType.line,
+            child: Row(
+              children: [
+                Icon(Icons.horizontal_rule, size: 18),
+                SizedBox(width: 8),
+                Text('Line'),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: ShapeType.arrow,
+            child: Row(
+              children: [
+                Icon(Icons.arrow_right_alt, size: 18),
+                SizedBox(width: 8),
+                Text('Arrow'),
+              ],
+            ),
+          ),
+        ],
       ),
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: ShapeType.rectangle,
-          child: Row(
-            children: [
-              Icon(Icons.rectangle_outlined, size: 18),
-              SizedBox(width: 8),
-              Text('Rectangle'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: ShapeType.circle,
-          child: Row(
-            children: [
-              Icon(Icons.circle_outlined, size: 18),
-              SizedBox(width: 8),
-              Text('Circle / Oval'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: ShapeType.line,
-          child: Row(
-            children: [
-              Icon(Icons.horizontal_rule, size: 18),
-              SizedBox(width: 8),
-              Text('Line'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: ShapeType.arrow,
-          child: Row(
-            children: [
-              Icon(Icons.arrow_right_alt, size: 18),
-              SizedBox(width: 8),
-              Text('Arrow'),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

@@ -554,31 +554,33 @@ class _PdfInlineTextFieldState extends State<_PdfInlineTextField> {
         child: Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                enabled: !widget.field.isReadOnly,
-                obscureText: widget.field.isPassword,
-                maxLines: widget.field.isMultiline ? null : 1,
-                maxLength: widget.field.maxLength,
-                style: TextStyle(
-                  fontSize: fontSize,
-                  color: Colors.black87,
-                  height: 1.25,
+              child: Material(
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  enabled: !widget.field.isReadOnly,
+                  obscureText: widget.field.isPassword,
+                  maxLines: widget.field.isMultiline ? null : 1,
+                  maxLength: widget.field.maxLength,
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    color: Colors.black87,
+                    height: 1.25,
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    border: InputBorder.none,
+                    counterText: '',
+                    hintText: widget.field.isRequired && widget.field.value.isEmpty
+                        ? (widget.field.validationError ?? '')
+                        : null,
+                    hintStyle: const TextStyle(color: Colors.redAccent, fontSize: 11),
+                  ),
+                  onChanged: (val) {
+                    widget.onChanged(val);
+                  },
                 ),
-                decoration: InputDecoration(
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
-                  border: InputBorder.none,
-                  counterText: '',
-                  hintText: widget.field.isRequired && widget.field.value.isEmpty
-                      ? (widget.field.validationError ?? '')
-                      : null,
-                  hintStyle: const TextStyle(color: Colors.redAccent, fontSize: 11),
-                ),
-                onChanged: (val) {
-                  widget.onChanged(val);
-                },
               ),
             ),
             if (hasError)
