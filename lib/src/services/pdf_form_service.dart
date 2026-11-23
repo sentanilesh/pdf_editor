@@ -410,31 +410,35 @@ class PdfFormService {
     }
   }
 
-  /// Injects updated form field values back into [originalPdfBytes] and optionally
-  /// flattens them so they become permanent, high-fidelity visual elements.
-  static Future<Uint8List> applyFormValues(
-    Uint8List originalPdfBytes,
-    List<PdfFormField> fields, {
-    String? password,
-    bool flatten = false,
-  }) async {
-    if (fields.isEmpty) return originalPdfBytes;
+  /// Applies updated form field values directly to an open [sf.PdfDocument].
+  static void applyFormValuesToDocument(
+    sf.PdfDocument doc,
+    List<PdfFormField> fields,
+  ) {
+    if (fields.isEmpty) return;
 
     try {
-      final doc = sf.PdfDocument(inputBytes: originalPdfBytes, password: password);
-      try {
-        final form = doc.form;
+      final form = doc.form;
 
-        for (final field in fields) {
-          final target = _findFieldByName(form, field.name);
-          if (target == null) continue;
+      for (final field in fields) {
+        final target = _findFieldByName(form, field.name);
+        if (target == null) continue;
 
+        try {
           if (field is PdfTextFormField && target is sf.PdfTextBoxField) {
             target.text = field.value;
           } else if (field is PdfCheckBoxFormField && target is sf.PdfCheckBoxField) {
             target.isChecked = field.isChecked;
           } else if (field is PdfRadioGroupFormField && target is sf.PdfRadioButtonListField) {
-            if (field.selectedIndex >= 0 && field.selectedIndex < target.items.count) {
+            if (field.selectedValue != null && field.selectedValue!.isNotEmpty) {
+              try {
+                target.selectedValue = field.selectedValue!;
+              } catch (_) {
+                if (field.selectedIndex >= 0 && field.selectedIndex < target.items.count) {
+                  target.selectedIndex = field.selectedIndex;
+                }
+              }
+            } else if (field.selectedIndex >= 0 && field.selectedIndex < target.items.count) {
               target.selectedIndex = field.selectedIndex;
             }
           } else if (field is PdfDropdownFormField && target is sf.PdfComboBoxField) {
@@ -450,10 +454,37 @@ class PdfFormService {
               target.selectedValues = field.selectedValues;
             }
           }
+        } catch (fieldErr) {
+          debugPrint('PdfFormService: Error applying value to field "${field.name}": $fieldErr');
         }
+      }
+    } catch (e) {
+      debugPrint('PdfFormService.applyFormValuesToDocument error: $e');
+    }
+  }
 
-        if (flatten) {
-          form.flattenAllFields();
+  /// Injects updated form field values back into [originalPdfBytes] and optionally
+  /// flattens or removes them.
+  static Future<Uint8List> applyFormValues(
+    Uint8List originalPdfBytes,
+    List<PdfFormField> fields, {
+    String? password,
+    bool flatten = false,
+    bool removeFormFields = false,
+  }) async {
+    if (fields.isEmpty && !removeFormFields) return originalPdfBytes;
+
+    try {
+      final doc = sf.PdfDocument(inputBytes: originalPdfBytes, password: password);
+      try {
+        if (removeFormFields) {
+          doc.form.fields.clear();
+        } else {
+          applyFormValuesToDocument(doc, fields);
+
+          if (flatten) {
+            doc.form.flattenAllFields();
+          }
         }
 
         final bytes = doc.saveSync();
