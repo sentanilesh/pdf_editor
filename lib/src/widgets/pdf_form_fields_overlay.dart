@@ -44,10 +44,16 @@ class PdfFormFieldsOverlay extends StatelessWidget {
           overlayChildren.addAll(_buildFieldWidgets(context, field, scaleX, scaleY));
         }
 
-        return IgnorePointer(
-          ignoring: isAnnotationTool,
-          child: Stack(
-            children: overlayChildren,
+        return SizedBox(
+          width: pageSize.width,
+          height: pageSize.height,
+          child: IgnorePointer(
+            ignoring: isAnnotationTool,
+            child: Stack(
+              fit: StackFit.expand,
+              clipBehavior: Clip.none,
+              children: overlayChildren,
+            ),
           ),
         );
       },

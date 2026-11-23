@@ -198,16 +198,20 @@ class _PdfEditorState extends State<PdfEditor> {
       },
       pageOverlaysBuilder: (context, pageRect, page) {
         return [
-          AnnotationCanvas(
-            controller: ctrl,
-            page: page,
-            pageSize: pageRect.size,
+          Positioned.fill(
+            child: AnnotationCanvas(
+              controller: ctrl,
+              page: page,
+              pageSize: pageRect.size,
+            ),
           ),
-          PdfFormFieldsOverlay(
-            controller: ctrl,
-            pageNumber: page.pageNumber,
-            pageSize: pageRect.size,
-            page: page,
+          Positioned.fill(
+            child: PdfFormFieldsOverlay(
+              controller: ctrl,
+              pageNumber: page.pageNumber,
+              pageSize: pageRect.size,
+              page: page,
+            ),
           ),
         ];
       },
@@ -266,6 +270,7 @@ class _PdfEditorState extends State<PdfEditor> {
               if (widget.showToolbar)
                 EditorToolbar(
                   controller: _controller,
+                  onSave: _handleSave,
                   onPrint: _handlePrint,
                   isMobile: isMobile,
                 ),

@@ -115,4 +115,33 @@ class PdfDocumentSource {
         return res.bodyBytes;
     }
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PdfDocumentSource) return false;
+    if (other.type != type || other.name != name) return false;
+    switch (type) {
+      case PdfSourceType.file:
+        return other.file?.path == file?.path;
+      case PdfSourceType.bytes:
+        return identical(other.bytes, bytes) || listEquals(other.bytes, bytes);
+      case PdfSourceType.asset:
+        return other.assetName == assetName;
+      case PdfSourceType.network:
+        return other.url == url;
+    }
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      type,
+      name,
+      file?.path,
+      assetName,
+      url,
+      bytes?.lengthInBytes,
+    );
+  }
 }

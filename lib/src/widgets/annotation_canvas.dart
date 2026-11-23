@@ -118,45 +118,49 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
 
         final isViewMode = tool == PdfToolType.view;
 
-        return IgnorePointer(
-          ignoring: isViewMode,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTapUp: (details) => _handleTapUp(details.localPosition),
-            onDoubleTapDown: (details) => _handleDoubleTap(details.localPosition),
-            onPanStart: (details) => _handlePanStart(details.localPosition),
-            onPanUpdate: (details) => _handlePanUpdate(details.localPosition),
-            onPanEnd: (details) => _handlePanEnd(),
-            child: MouseRegion(
-              cursor: _getCursor(selected),
-              child: RepaintBoundary(
-                child: Stack(
-                  children: [
-                    // Layer 1: Finalized annotations on this page
-                    CustomPaint(
-                      size: widget.pageSize,
-                      painter: AnnotationPainter(
-                        annotations: List.of(annotations),
-                        originalPageSize: Size(widget.page.width, widget.page.height),
-                        selectedAnnotation: selected,
+        return SizedBox(
+          width: widget.pageSize.width,
+          height: widget.pageSize.height,
+          child: IgnorePointer(
+            ignoring: isViewMode,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTapUp: (details) => _handleTapUp(details.localPosition),
+              onDoubleTapDown: (details) => _handleDoubleTap(details.localPosition),
+              onPanStart: (details) => _handlePanStart(details.localPosition),
+              onPanUpdate: (details) => _handlePanUpdate(details.localPosition),
+              onPanEnd: (details) => _handlePanEnd(),
+              child: MouseRegion(
+                cursor: _getCursor(selected),
+                child: RepaintBoundary(
+                  child: Stack(
+                    children: [
+                      // Layer 1: Finalized annotations on this page
+                      CustomPaint(
+                        size: widget.pageSize,
+                        painter: AnnotationPainter(
+                          annotations: List.of(annotations),
+                          originalPageSize: Size(widget.page.width, widget.page.height),
+                          selectedAnnotation: selected,
+                        ),
                       ),
-                    ),
 
-                    // Layer 2: Live stroke/shape/resize preview layer (repaints only when active)
-                    ValueListenableBuilder<PdfAnnotation?>(
-                      valueListenable: _liveNotifier,
-                      builder: (context, live, _) {
-                        if (live == null) return const SizedBox.shrink();
-                        return CustomPaint(
-                          size: widget.pageSize,
-                          painter: LiveAnnotationPainter(
-                            liveAnnotation: live,
-                            originalPageSize: Size(widget.page.width, widget.page.height),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                      // Layer 2: Live stroke/shape/resize preview layer (repaints only when active)
+                      ValueListenableBuilder<PdfAnnotation?>(
+                        valueListenable: _liveNotifier,
+                        builder: (context, live, _) {
+                          if (live == null) return const SizedBox.shrink();
+                          return CustomPaint(
+                            size: widget.pageSize,
+                            painter: LiveAnnotationPainter(
+                              liveAnnotation: live,
+                              originalPageSize: Size(widget.page.width, widget.page.height),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -364,9 +368,6 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
     );
 
     if (result != null && result.strokes.isNotEmpty) {
-      const sigWidth = 140.0;
-      const sigHeight = 65.0;
-
       final rawStrokes = result.strokes;
       double minX = double.infinity;
       double maxX = double.negativeInfinity;
