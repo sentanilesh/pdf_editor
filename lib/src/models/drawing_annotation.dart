@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'annotation.dart';
 
 /// Freehand drawing or highlighter annotation consisting of smooth stroke points.

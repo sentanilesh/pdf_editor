@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Modal dialog that prompts the user to enter a password for encrypted,
 /// password-protected PDF documents.

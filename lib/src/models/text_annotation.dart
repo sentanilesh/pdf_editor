@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'annotation.dart';
 
 /// Text annotation that can be placed anywhere on the PDF page.

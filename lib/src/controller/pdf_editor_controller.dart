@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:pdfrx/pdfrx.dart' hide PdfAnnotation;
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';

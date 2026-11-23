@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'drawing_annotation.dart';
 import 'redaction_annotation.dart';
