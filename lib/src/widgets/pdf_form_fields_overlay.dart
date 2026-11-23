@@ -303,84 +303,86 @@ class PdfFormFieldsOverlay extends StatelessWidget {
       top: rect.top,
       width: rect.width,
       height: rect.height,
-      child: PopupMenuButton<String>(
-        tooltip: field.tooltip ?? 'Select option',
-        enabled: !field.isReadOnly,
-        position: PopupMenuPosition.under,
-        elevation: 6,
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-          side: BorderSide(color: Colors.grey.shade300),
-        ),
-        constraints: BoxConstraints(
-          minWidth: rect.width,
-        ),
-        onSelected: (val) {
-          controller.updateFormFieldValue(field.name, val);
-        },
-        itemBuilder: (ctx) {
-          return field.options.map((opt) {
-            final isSelected = opt == field.selectedValue;
-            return PopupMenuItem<String>(
-              value: opt,
-              height: 32,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      opt,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isSelected ? const Color(0xFF1E88E5) : Colors.black87,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+      child: Material(
+        child: PopupMenuButton<String>(
+          tooltip: field.tooltip ?? 'Select option',
+          enabled: !field.isReadOnly,
+          position: PopupMenuPosition.under,
+          elevation: 6,
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(6),
+            side: BorderSide(color: Colors.grey.shade300),
+          ),
+          constraints: BoxConstraints(
+            minWidth: rect.width,
+          ),
+          onSelected: (val) {
+            controller.updateFormFieldValue(field.name, val);
+          },
+          itemBuilder: (ctx) {
+            return field.options.map((opt) {
+              final isSelected = opt == field.selectedValue;
+              return PopupMenuItem<String>(
+                value: opt,
+                height: 32,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        opt,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isSelected ? const Color(0xFF1E88E5) : Colors.black87,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        ),
                       ),
                     ),
-                  ),
-                  if (isSelected)
-                    const Icon(Icons.check, size: 14, color: Color(0xFF1E88E5)),
-                ],
-              ),
-            );
-          }).toList();
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(3),
-            border: Border.all(
-              color: hasError ? Colors.redAccent : const Color(0xFF1E88E5),
-              width: hasError ? 2.0 : 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 2,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  field.selectedValue ?? (field.options.isNotEmpty ? field.options.first : ''),
-                  style: TextStyle(
-                    fontSize: (rect.height * 0.52).clamp(10.0, 15.0),
-                    color: Colors.black87,
-                    fontWeight: FontWeight.normal,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                    if (isSelected)
+                      const Icon(Icons.check, size: 14, color: Color(0xFF1E88E5)),
+                  ],
                 ),
+              );
+            }).toList();
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(3),
+              border: Border.all(
+                color: hasError ? Colors.redAccent : const Color(0xFF1E88E5),
+                width: hasError ? 2.0 : 1.2,
               ),
-              Icon(
-                Icons.arrow_drop_down,
-                size: (rect.height * 0.8).clamp(16.0, 22.0),
-                color: const Color(0xFF1E88E5),
-              ),
-            ],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 2,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    field.selectedValue ?? (field.options.isNotEmpty ? field.options.first : ''),
+                    style: TextStyle(
+                      fontSize: (rect.height * 0.52).clamp(10.0, 15.0),
+                      color: Colors.black87,
+                      fontWeight: FontWeight.normal,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: (rect.height * 0.8).clamp(16.0, 22.0),
+                  color: const Color(0xFF1E88E5),
+                ),
+              ],
+            ),
           ),
         ),
       ),
