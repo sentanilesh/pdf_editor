@@ -1,0 +1,28 @@
+name: pdf_editor
+description: "A feature-rich, high-performance Flutter PDF viewer and editor for all platforms (Android, iOS, Web, Windows, macOS, Linux). Supports viewing, annotations, drawing, signatures, text editing, shapes, stamps, redactions, page manipulation, undo/redo, and high-fidelity PDF export."
+version: 1.0.0
+repository: https://github.com/example/pdf_editor
+issue_tracker: https://github.com/example/pdf_editor/issues
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  pdfrx: ^3.0.1
+  pdf: ^3.13.1
+  printing: ^5.15.1
+  http: ^1.2.0
+  path_provider: ^2.1.2
+  google_fonts: ^9.0.0
+  syncfusion_flutter_pdf: ^35.2.12
+  url_launcher: ^6.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
