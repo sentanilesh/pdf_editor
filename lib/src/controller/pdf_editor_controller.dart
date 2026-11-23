@@ -951,22 +951,12 @@ class PdfEditorController extends ChangeNotifier {
   // Export & Print
   // =========================================================================
 
-  /// Exports the edited document as PDF bytes.
-  ///
-  /// - [preserveFormFields]: If true (default), interactive AcroForm fields are preserved
-  ///   with updated user-entered values intact.
-  /// - [flattenFormFields]: If true, flattens form field values permanently into the
-  ///   visual page stream and removes interactive form field controls.
-  /// - [removeFormFields]: If true, completely removes all form elements/fields from the PDF.
-  /// - [rasterizePages]: If true, forces rasterizing pages to bitmap images at [dpi].
-  ///   Defaults to false (preserves crisp vector text, hyperlinks, and small file sizes).
-  /// - [dpi]: Resolution factor for rendering annotations or raster fallback (default 150 DPI).
+  /// Exports the edited document with overlaid annotations as PDF bytes.
+  /// If [flattenForms] is false (default), interactive form fields remain
+  /// editable and interactive in the exported PDF, with user modifications saved.
   Future<Uint8List> exportPdf({
     double dpi = 150.0,
-    bool preserveFormFields = true,
-    bool flattenFormFields = false,
-    bool removeFormFields = false,
-    bool rasterizePages = false,
+    bool flattenForms = false,
     PdfPasswordProvider? passwordProvider,
   }) async {
     if (_source == null) {
@@ -979,38 +969,9 @@ class PdfEditorController extends ChangeNotifier {
       pageStates: _pageStates,
       pageOrder: _pageOrder,
       dpi: dpi,
-      preserveFormFields: preserveFormFields,
-      flattenFormFields: flattenFormFields,
-      removeFormFields: removeFormFields,
-      rasterizePages: rasterizePages,
+      flattenForms: flattenForms,
       passwordProvider: passwordProvider ??
           (_documentPassword != null ? () => _documentPassword : null),
-    );
-  }
-
-  /// Exports the PDF with all form elements completely removed from the document.
-  Future<Uint8List> exportPdfWithoutFormFields({
-    double dpi = 150.0,
-    PdfPasswordProvider? passwordProvider,
-  }) {
-    return exportPdf(
-      dpi: dpi,
-      removeFormFields: true,
-      preserveFormFields: false,
-      passwordProvider: passwordProvider,
-    );
-  }
-
-  /// Exports the PDF with all form elements flattened into static visual elements.
-  Future<Uint8List> exportFlattenedPdf({
-    double dpi = 150.0,
-    PdfPasswordProvider? passwordProvider,
-  }) {
-    return exportPdf(
-      dpi: dpi,
-      flattenFormFields: true,
-      preserveFormFields: false,
-      passwordProvider: passwordProvider,
     );
   }
 

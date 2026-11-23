@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf_editor/pdf_editor.dart';
+import 'dart:js_interop';
+import 'dart:typed_data';
+import 'package:web/web.dart' as web;
 
 void main() {
   runApp(const PdfEditorDemoApp());
@@ -249,6 +252,24 @@ class _DemoHomeScreenState extends State<DemoHomeScreen> {
   void _onExportPdf(Uint8List exportedBytes) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isDark ? Colors.white12 : Colors.grey.shade300;
+
+    // Convert Uint8List to a Blob
+    final blob = web.Blob(
+      [exportedBytes.toJS].toJS,
+      web.BlobPropertyBag(type: 'application/pdf'),
+    );
+
+    // Create an object URL and trigger an anchor click
+    final url = web.URL.createObjectURL(blob);
+    final anchor = web.HTMLAnchorElement()
+      ..href = url
+      ..download = 'TEST.pdf';
+
+    anchor.click();
+
+    // Clean up the object URL
+    web.URL.revokeObjectURL(url);
+
 
     showDialog(
       context: context,

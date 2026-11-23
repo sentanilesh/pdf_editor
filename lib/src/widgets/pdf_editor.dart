@@ -28,9 +28,6 @@ class PdfEditor extends StatefulWidget {
     this.showPropertiesBar = false,
     this.backgroundColor = const Color(0xFFE0E0E0),
     this.passwordProvider,
-    this.preserveFormFields = true,
-    this.flattenFormFields = false,
-    this.removeFormFields = false,
   });
 
   /// The PDF document source (bytes, file, asset, or network url).
@@ -58,15 +55,6 @@ class PdfEditor extends StatefulWidget {
   /// If null, a built-in interactive dialog ([PdfPasswordDialog]) is automatically
   /// displayed when a password-protected PDF is encountered.
   final FutureOr<String?> Function()? passwordProvider;
-
-  /// Whether to preserve interactive form fields when saving/exporting (default: true).
-  final bool preserveFormFields;
-
-  /// Whether to flatten form fields into static visuals when saving/exporting (default: false).
-  final bool flattenFormFields;
-
-  /// Whether to completely remove all form elements when saving/exporting (default: false).
-  final bool removeFormFields;
 
   @override
   State<PdfEditor> createState() => _PdfEditorState();
@@ -133,11 +121,7 @@ class _PdfEditorState extends State<PdfEditor> {
 
   Future<void> _handleSave() async {
     try {
-      final bytes = await _controller.exportPdf(
-        preserveFormFields: widget.preserveFormFields,
-        flattenFormFields: widget.flattenFormFields,
-        removeFormFields: widget.removeFormFields,
-      );
+      final bytes = await _controller.exportPdf();
       if (widget.onSave != null) {
         widget.onSave!(bytes);
       } else if (mounted) {

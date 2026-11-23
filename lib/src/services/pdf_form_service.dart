@@ -410,83 +410,74 @@ class PdfFormService {
     }
   }
 
-  /// Applies updated form field values directly to an open [sf.PdfDocument].
-  static void applyFormValuesToDocument(
-    sf.PdfDocument doc,
-    List<PdfFormField> fields,
-  ) {
-    if (fields.isEmpty) return;
+  /// Applies interactive form field values to an open [form] instance.
+  /// If [flatten] is false (default), the form fields remain interactive AcroForm elements.
+  static void applyFieldsToForm(
+    sf.PdfForm form,
+    List<PdfFormField> fields, {
+    bool flatten = false,
+  }) {
+    for (final field in fields) {
+      final target = _findFieldByName(form, field.name);
+      if (target == null) continue;
 
-    try {
-      final form = doc.form;
-
-      for (final field in fields) {
-        final target = _findFieldByName(form, field.name);
-        if (target == null) continue;
-
-        try {
-          if (field is PdfTextFormField && target is sf.PdfTextBoxField) {
-            target.text = field.value;
-          } else if (field is PdfCheckBoxFormField && target is sf.PdfCheckBoxField) {
-            target.isChecked = field.isChecked;
-          } else if (field is PdfRadioGroupFormField && target is sf.PdfRadioButtonListField) {
-            if (field.selectedValue != null && field.selectedValue!.isNotEmpty) {
-              try {
-                target.selectedValue = field.selectedValue!;
-              } catch (_) {
-                if (field.selectedIndex >= 0 && field.selectedIndex < target.items.count) {
-                  target.selectedIndex = field.selectedIndex;
-                }
+      try {
+        if (field is PdfTextFormField && target is sf.PdfTextBoxField) {
+          target.text = field.value;
+        } else if (field is PdfCheckBoxFormField && target is sf.PdfCheckBoxField) {
+          target.isChecked = field.isChecked;
+        } else if (field is PdfRadioGroupFormField && target is sf.PdfRadioButtonListField) {
+          if (field.selectedIndex >= 0 && field.selectedIndex < target.items.count) {
+            target.selectedIndex = field.selectedIndex;
+          } else if (field.selectedValue != null) {
+            final cleanVal = field.selectedValue!.toLowerCase().replaceAll('/', '');
+            for (int r = 0; r < target.items.count; r++) {
+              final rawVal = target.items[r].value;
+              final itemVal = rawVal.toLowerCase().replaceAll('/', '');
+              if (itemVal == cleanVal) {
+                target.selectedIndex = r;
+                break;
               }
-            } else if (field.selectedIndex >= 0 && field.selectedIndex < target.items.count) {
-              target.selectedIndex = field.selectedIndex;
-            }
-          } else if (field is PdfDropdownFormField && target is sf.PdfComboBoxField) {
-            if (field.selectedIndex >= 0 && field.selectedIndex < target.items.count) {
-              target.selectedIndex = field.selectedIndex;
-            } else if (field.selectedValue != null && field.selectedValue!.isNotEmpty) {
-              target.selectedValue = field.selectedValue!;
-            }
-          } else if (field is PdfListBoxFormField && target is sf.PdfListBoxField) {
-            if (field.selectedIndex >= 0) {
-              target.selectedIndexes = [field.selectedIndex];
-            } else if (field.selectedValues.isNotEmpty) {
-              target.selectedValues = field.selectedValues;
             }
           }
-        } catch (fieldErr) {
-          debugPrint('PdfFormService: Error applying value to field "${field.name}": $fieldErr');
+        } else if (field is PdfDropdownFormField && target is sf.PdfComboBoxField) {
+          if (field.selectedIndex >= 0 && field.selectedIndex < target.items.count) {
+            target.selectedIndex = field.selectedIndex;
+          } else if (field.selectedValue != null && field.selectedValue!.isNotEmpty) {
+            target.selectedValue = field.selectedValue!;
+          }
+        } else if (field is PdfListBoxFormField && target is sf.PdfListBoxField) {
+          if (field.selectedIndex >= 0) {
+            target.selectedIndexes = [field.selectedIndex];
+          } else if (field.selectedValues.isNotEmpty) {
+            target.selectedValues = field.selectedValues;
+          }
         }
+      } catch (e) {
+        debugPrint('PdfFormService.applyFieldsToForm: Failed to set field ${field.name}: $e');
       }
-    } catch (e) {
-      debugPrint('PdfFormService.applyFormValuesToDocument error: $e');
+    }
+
+    if (flatten) {
+      form.flattenAllFields();
     }
   }
 
   /// Injects updated form field values back into [originalPdfBytes] and optionally
-  /// flattens or removes them.
+  /// flattens them. If [flatten] is false (default), interactive AcroForm fields
+  /// are preserved and remain editable.
   static Future<Uint8List> applyFormValues(
     Uint8List originalPdfBytes,
     List<PdfFormField> fields, {
     String? password,
     bool flatten = false,
-    bool removeFormFields = false,
   }) async {
-    if (fields.isEmpty && !removeFormFields) return originalPdfBytes;
+    if (fields.isEmpty && !flatten) return originalPdfBytes;
 
     try {
       final doc = sf.PdfDocument(inputBytes: originalPdfBytes, password: password);
       try {
-        if (removeFormFields) {
-          doc.form.fields.clear();
-        } else {
-          applyFormValuesToDocument(doc, fields);
-
-          if (flatten) {
-            doc.form.flattenAllFields();
-          }
-        }
-
+        applyFieldsToForm(doc.form, fields, flatten: flatten);
         final bytes = doc.saveSync();
         return Uint8List.fromList(bytes);
       } finally {
@@ -501,6 +492,12 @@ class PdfFormService {
   static sf.PdfField? _findFieldByName(sf.PdfForm form, String name) {
     for (int i = 0; i < form.fields.count; i++) {
       if (form.fields[i].name == name) {
+        return form.fields[i];
+      }
+    }
+    final lower = name.toLowerCase();
+    for (int i = 0; i < form.fields.count; i++) {
+      if (form.fields[i].name?.toLowerCase() == lower) {
         return form.fields[i];
       }
     }
