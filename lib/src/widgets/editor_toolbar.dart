@@ -441,20 +441,20 @@ class EditorToolbar extends StatelessWidget {
                 ),
 
                 // 8. Save / Export button
-                if (onSave != null) ...[
-                  const SizedBox(width: 8),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      minimumSize: const Size(0, 32),
-                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                    ),
-                    icon: const Icon(Icons.save_outlined, size: 16),
-                    label: const Text('Export PDF'),
-                    onPressed: onSave,
-                  ),
-                ],
+                // if (onSave != null) ...[
+                //   const SizedBox(width: 8),
+                //   FilledButton.icon(
+                //     style: FilledButton.styleFrom(
+                //       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                //       minimumSize: const Size(0, 32),
+                //       textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                //     ),
+                //     icon: const Icon(Icons.save_outlined, size: 16),
+                //     label: const Text('Export PDF'),
+                //     onPressed: onSave,
+                //   ),
+                // ],
               ],
             ),
           ),
