@@ -31,7 +31,7 @@ class DrawingAnnotation extends PdfAnnotation {
   @override
   String get type => isHighlighter ? 'highlighter' : 'drawing';
 
-  static Rect _calculateBounds(List<Offset> pts, double strokeWidth) {
+  static Rect calculateBounds(List<Offset> pts, double strokeWidth) {
     if (pts.isEmpty) return Rect.zero;
     double minX = pts.first.dx;
     double maxX = pts.first.dx;
@@ -52,6 +52,48 @@ class DrawingAnnotation extends PdfAnnotation {
       maxX + halfStroke,
       maxY + halfStroke,
     );
+  }
+
+  static Rect _calculateBounds(List<Offset> pts, double strokeWidth) =>
+      calculateBounds(pts, strokeWidth);
+
+  @override
+  bool hitTest(Offset point, {double padding = 8.0}) {
+    final effectivePadding = (strokeWidth / 2) + padding;
+    if (!bounds.inflate(effectivePadding).contains(point)) {
+      return false;
+    }
+    if (points.isEmpty) return false;
+    if (points.length == 1) {
+      return (point - points.first).distance <= effectivePadding;
+    }
+
+    final thresholdSq = effectivePadding * effectivePadding;
+    for (int i = 0; i < points.length - 1; i++) {
+      final p1 = points[i];
+      final p2 = points[i + 1];
+      if (_distToSegmentSquared(point, p1, p2) <= thresholdSq) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static double _distToSegmentSquared(Offset p, Offset a, Offset b) {
+    final dx = b.dx - a.dx;
+    final dy = b.dy - a.dy;
+    final lenSq = dx * dx + dy * dy;
+    if (lenSq == 0) {
+      final px = p.dx - a.dx;
+      final py = p.dy - a.dy;
+      return px * px + py * py;
+    }
+    final t = (((p.dx - a.dx) * dx + (p.dy - a.dy) * dy) / lenSq).clamp(0.0, 1.0);
+    final projX = a.dx + t * dx;
+    final projY = a.dy + t * dy;
+    final rx = p.dx - projX;
+    final ry = p.dy - projY;
+    return rx * rx + ry * ry;
   }
 
   @override

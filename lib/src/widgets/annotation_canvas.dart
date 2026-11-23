@@ -50,6 +50,7 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
   PdfAnnotation? _draggingAnnotation;
   Rect? _initialBounds;
   _ResizeHandle? _activeResizeHandle;
+  Offset? _lastEraserPoint;
   final ValueNotifier<PdfAnnotation?> _liveNotifier = ValueNotifier<PdfAnnotation?>(null);
 
   @override
@@ -131,15 +132,13 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
               child: RepaintBoundary(
                 child: Stack(
                   children: [
-                    // Layer 1: Finalized annotations on this page (cached via RepaintBoundary)
-                    RepaintBoundary(
-                      child: CustomPaint(
-                        size: widget.pageSize,
-                        painter: AnnotationPainter(
-                          annotations: annotations,
-                          originalPageSize: Size(widget.page.width, widget.page.height),
-                          selectedAnnotation: selected,
-                        ),
+                    // Layer 1: Finalized annotations on this page
+                    CustomPaint(
+                      size: widget.pageSize,
+                      painter: AnnotationPainter(
+                        annotations: List.of(annotations),
+                        originalPageSize: Size(widget.page.width, widget.page.height),
+                        selectedAnnotation: selected,
                       ),
                     ),
 
@@ -180,8 +179,8 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
     if (tool == PdfToolType.text) {
       return SystemMouseCursors.text;
     }
-    if (tool == PdfToolType.eraser) {
-      return SystemMouseCursors.forbidden;
+    if (tool == PdfToolType.eraser || tool == PdfToolType.signature) {
+      return SystemMouseCursors.precise;
     }
     return MouseCursor.defer;
   }
@@ -236,14 +235,18 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
     }
   }
 
-  void _handleEraserTap(Offset pdfPoint) {
+  void _eraseAtPoint(Offset pdfPoint, {double radius = 16.0}) {
     final annotations = controller.getAnnotationsForPage(pageNumber);
     for (final ann in annotations.reversed) {
-      if (ann.hitTest(pdfPoint)) {
+      if (ann.hitTest(pdfPoint, padding: radius)) {
         controller.removeAnnotation(ann);
         break;
       }
     }
+  }
+
+  void _handleEraserTap(Offset pdfPoint) {
+    _eraseAtPoint(pdfPoint, radius: 20.0);
   }
 
   void _handleSelectTap(Offset pdfPoint) {
@@ -382,10 +385,20 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
       final rawW = (maxX - minX).clamp(1.0, 5000.0);
       final rawH = (maxY - minY).clamp(1.0, 5000.0);
 
+      // Preserve natural aspect ratio of the signature
+      double placedW = 140.0;
+      double placedH = 65.0;
+      final aspect = rawW / rawH;
+      if (aspect > (140.0 / 65.0)) {
+        placedH = (140.0 / aspect).clamp(20.0, 140.0);
+      } else {
+        placedW = (65.0 * aspect).clamp(30.0, 200.0);
+      }
+
       final sigRect = Rect.fromCenter(
         center: pdfPoint,
-        width: sigWidth,
-        height: sigHeight,
+        width: placedW,
+        height: placedH,
       );
 
       final normStrokes = rawStrokes.map((stroke) {
@@ -393,8 +406,8 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
           final nx = (pt.dx - minX) / rawW;
           final ny = (pt.dy - minY) / rawH;
           return Offset(
-            sigRect.left + nx * sigWidth,
-            sigRect.top + ny * sigHeight,
+            sigRect.left + nx * placedW,
+            sigRect.top + ny * placedH,
           );
         }).toList();
       }).toList();
@@ -409,6 +422,8 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
       );
 
       controller.addAnnotation(sigAnn);
+      controller.selectAnnotation(sigAnn);
+      controller.setTool(PdfToolType.select);
     }
   }
 
@@ -428,6 +443,18 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
             : controller.currentStrokeWidth,
         isHighlighter: tool == PdfToolType.highlighter,
       );
+    } else if (tool == PdfToolType.signature) {
+      _currentDrawingPoints = [pdfPoint];
+      _liveNotifier.value = DrawingAnnotation(
+        id: 'live',
+        pageNumber: pageNumber,
+        points: List.from(_currentDrawingPoints),
+        color: controller.currentColor,
+        strokeWidth: controller.currentStrokeWidth,
+      );
+    } else if (tool == PdfToolType.eraser) {
+      _lastEraserPoint = pdfPoint;
+      _eraseAtPoint(pdfPoint);
     } else if (tool == PdfToolType.shape) {
       _shapeStartPoint = pdfPoint;
       _shapeEndPoint = pdfPoint;
@@ -508,6 +535,30 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
           isHighlighter: tool == PdfToolType.highlighter,
         );
       }
+    } else if (tool == PdfToolType.signature) {
+      if (_currentDrawingPoints.isEmpty ||
+          (pdfPoint - _currentDrawingPoints.last).distanceSquared >= 1.5) {
+        _currentDrawingPoints.add(pdfPoint);
+        _liveNotifier.value = DrawingAnnotation(
+          id: 'live',
+          pageNumber: pageNumber,
+          points: List.from(_currentDrawingPoints),
+          color: controller.currentColor,
+          strokeWidth: controller.currentStrokeWidth,
+        );
+      }
+    } else if (tool == PdfToolType.eraser) {
+      if (_lastEraserPoint != null) {
+        final dist = (pdfPoint - _lastEraserPoint!).distance;
+        final steps = (dist / 8.0).ceil().clamp(1, 12);
+        for (int s = 1; s <= steps; s++) {
+          final interp = Offset.lerp(_lastEraserPoint!, pdfPoint, s / steps)!;
+          _eraseAtPoint(interp);
+        }
+      } else {
+        _eraseAtPoint(pdfPoint);
+      }
+      _lastEraserPoint = pdfPoint;
     } else if (tool == PdfToolType.shape && _shapeStartPoint != null) {
       // Apply Shift-key constraint for perfect square/circle or 45-degree line!
       _shapeEndPoint = _constrainShapeEndPoint(_shapeStartPoint!, pdfPoint);
@@ -601,6 +652,26 @@ class _AnnotationCanvasState extends State<AnnotationCanvas> {
         isHighlighter: tool == PdfToolType.highlighter,
       );
       controller.addAnnotation(finalAnn);
+    } else if (tool == PdfToolType.signature && _currentDrawingPoints.isNotEmpty) {
+      if (_currentDrawingPoints.length >= 2) {
+        final bounds = DrawingAnnotation.calculateBounds(
+          _currentDrawingPoints,
+          controller.currentStrokeWidth,
+        );
+        final sigAnn = SignatureAnnotation(
+          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          pageNumber: pageNumber,
+          bounds: bounds,
+          strokes: [List.from(_currentDrawingPoints)],
+          color: controller.currentColor,
+          strokeWidth: controller.currentStrokeWidth,
+        );
+        controller.addAnnotation(sigAnn);
+        controller.selectAnnotation(sigAnn);
+        controller.setTool(PdfToolType.select);
+      }
+    } else if (tool == PdfToolType.eraser) {
+      _lastEraserPoint = null;
     } else if (tool == PdfToolType.shape &&
         _shapeStartPoint != null &&
         _shapeEndPoint != null) {

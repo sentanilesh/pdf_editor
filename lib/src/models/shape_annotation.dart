@@ -51,6 +51,26 @@ class ShapeAnnotation extends PdfAnnotation {
   }
 
   @override
+  bool hitTest(Offset point, {double padding = 8.0}) {
+    final effectivePadding = (strokeWidth / 2) + padding;
+    if (!bounds.inflate(effectivePadding).contains(point)) {
+      return false;
+    }
+    if (shapeType == ShapeType.line || shapeType == ShapeType.arrow) {
+      final dx = endPoint.dx - startPoint.dx;
+      final dy = endPoint.dy - startPoint.dy;
+      final lenSq = dx * dx + dy * dy;
+      if (lenSq == 0) {
+        return (point - startPoint).distance <= effectivePadding;
+      }
+      final t = (((point.dx - startPoint.dx) * dx + (point.dy - startPoint.dy) * dy) / lenSq).clamp(0.0, 1.0);
+      final proj = Offset(startPoint.dx + t * dx, startPoint.dy + t * dy);
+      return (point - proj).distance <= effectivePadding;
+    }
+    return bounds.inflate(effectivePadding).contains(point);
+  }
+
+  @override
   ShapeAnnotation copyWith({
     String? id,
     int? pageNumber,

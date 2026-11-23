@@ -288,6 +288,7 @@ class PdfEditorController extends ChangeNotifier {
   void addAnnotation(PdfAnnotation annotation, {bool recordHistory = true}) {
     final list = _annotations.putIfAbsent(annotation.pageNumber, () => []);
     list.add(annotation);
+    _annotations[annotation.pageNumber] = List.from(list);
 
     if (recordHistory) {
       _undoStack.add(AddAnnotationAction(annotation));
@@ -301,6 +302,7 @@ class PdfEditorController extends ChangeNotifier {
     if (list != null) {
       final removed = list.remove(annotation);
       if (removed) {
+        _annotations[annotation.pageNumber] = List.from(list);
         if (_selectedAnnotation?.id == annotation.id) {
           _selectedAnnotation = null;
         }
@@ -323,6 +325,7 @@ class PdfEditorController extends ChangeNotifier {
       final index = list.indexWhere((a) => a.id == oldAnnotation.id);
       if (index != -1) {
         list[index] = newAnnotation;
+        _annotations[oldAnnotation.pageNumber] = List.from(list);
         if (_selectedAnnotation?.id == oldAnnotation.id) {
           _selectedAnnotation = newAnnotation;
         }

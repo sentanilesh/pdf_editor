@@ -35,10 +35,8 @@ class PdfFormFieldsOverlay extends StatelessWidget {
         final fields = controller.getFormFieldsForPage(pageNumber);
         if (fields.isEmpty) return const SizedBox.shrink();
 
-        final isDrawing = controller.activeTool == PdfToolType.draw ||
-            controller.activeTool == PdfToolType.highlighter ||
-            controller.activeTool == PdfToolType.eraser ||
-            controller.activeTool == PdfToolType.shape;
+        final isAnnotationTool = controller.activeTool != PdfToolType.view &&
+            controller.activeTool != PdfToolType.select;
 
         final overlayChildren = <Widget>[];
         for (final field in fields) {
@@ -47,7 +45,7 @@ class PdfFormFieldsOverlay extends StatelessWidget {
         }
 
         return IgnorePointer(
-          ignoring: isDrawing,
+          ignoring: isAnnotationTool,
           child: Stack(
             children: overlayChildren,
           ),

@@ -97,6 +97,55 @@ void main() {
       expect(restored.strokes.length, 2);
     });
 
+    test('DrawingAnnotation hitTest accurately detects points near strokes', () {
+      final drawing = DrawingAnnotation(
+        id: 'draw-hit',
+        pageNumber: 1,
+        points: const [Offset(0, 0), Offset(100, 0)],
+        color: Colors.blue,
+        strokeWidth: 4.0,
+      );
+
+      // Directly on segment
+      expect(drawing.hitTest(const Offset(50, 0)), isTrue);
+      // Slightly offset within padding (strokeWidth/2 + padding 8 = 10)
+      expect(drawing.hitTest(const Offset(50, 8)), isTrue);
+      // Far away
+      expect(drawing.hitTest(const Offset(50, 50)), isFalse);
+      expect(drawing.hitTest(const Offset(200, 200)), isFalse);
+    });
+
+    test('ShapeAnnotation hitTest accurately detects points on line shapes', () {
+      final line = ShapeAnnotation(
+        id: 'line-hit',
+        pageNumber: 1,
+        shapeType: ShapeType.line,
+        startPoint: const Offset(10, 10),
+        endPoint: const Offset(100, 10),
+        color: Colors.black,
+        strokeWidth: 2.0,
+      );
+
+      expect(line.hitTest(const Offset(50, 10)), isTrue);
+      expect(line.hitTest(const Offset(50, 15)), isTrue);
+      expect(line.hitTest(const Offset(50, 50)), isFalse);
+    });
+
+    test('SignatureAnnotation hitTest detects stroke touches', () {
+      final sig = SignatureAnnotation(
+        id: 'sig-hit',
+        pageNumber: 1,
+        bounds: const Rect.fromLTWH(10, 10, 80, 40),
+        strokes: [
+          [const Offset(10, 10), const Offset(90, 50)],
+        ],
+        color: Colors.black,
+      );
+
+      expect(sig.hitTest(const Offset(50, 30)), isTrue);
+      expect(sig.hitTest(const Offset(500, 500)), isFalse);
+    });
+
     test('StampAnnotation supports standard and custom stamps', () {
       final stamp = StampAnnotation(
         id: 'stamp-1',

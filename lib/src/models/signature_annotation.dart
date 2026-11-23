@@ -89,6 +89,43 @@ class SignatureAnnotation extends PdfAnnotation {
   }
 
   @override
+  bool hitTest(Offset point, {double padding = 8.0}) {
+    final effectivePadding = (strokeWidth / 2) + padding;
+    if (!bounds.inflate(effectivePadding).contains(point)) {
+      return false;
+    }
+    if (strokes.isEmpty) return true;
+    final thresholdSq = effectivePadding * effectivePadding;
+    for (final stroke in strokes) {
+      if (stroke.isEmpty) continue;
+      if (stroke.length == 1) {
+        if ((point - stroke.first).distanceSquared <= thresholdSq) return true;
+        continue;
+      }
+      for (int i = 0; i < stroke.length - 1; i++) {
+        final p1 = stroke[i];
+        final p2 = stroke[i + 1];
+        final dx = p2.dx - p1.dx;
+        final dy = p2.dy - p1.dy;
+        final lenSq = dx * dx + dy * dy;
+        final double distSq;
+        if (lenSq == 0) {
+          distSq = (point - p1).distanceSquared;
+        } else {
+          final t = (((point.dx - p1.dx) * dx + (point.dy - p1.dy) * dy) / lenSq).clamp(0.0, 1.0);
+          final projX = p1.dx + t * dx;
+          final projY = p1.dy + t * dy;
+          final rx = point.dx - projX;
+          final ry = point.dy - projY;
+          distSq = rx * rx + ry * ry;
+        }
+        if (distSq <= thresholdSq) return true;
+      }
+    }
+    return bounds.inflate(padding).contains(point);
+  }
+
+  @override
   Map<String, dynamic> toJson() => {
         'type': type,
         'id': id,

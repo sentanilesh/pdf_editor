@@ -84,7 +84,7 @@ class _SignatureDialogState extends State<SignatureDialog> {
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 460),
-        child: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -171,35 +171,42 @@ class _SignatureDialogState extends State<SignatureDialog> {
                         ),
                       ),
                       // Gesture listener for drawing
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onPanStart: (details) {
-                          setState(() {
-                            _currentStroke = [details.localPosition];
-                            _strokes.add(_currentStroke!);
-                          });
-                        },
-                        onPanUpdate: (details) {
-                          final pt = details.localPosition;
-                          if (_currentStroke != null) {
-                            if (_currentStroke!.isEmpty ||
-                                (pt - _currentStroke!.last).distanceSquared >= 1.0) {
-                              setState(() {
-                                _currentStroke!.add(pt);
-                              });
+                      Positioned.fill(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTapDown: (details) {
+                            setState(() {
+                              _currentStroke = [details.localPosition];
+                              _strokes.add(_currentStroke!);
+                            });
+                          },
+                          onPanStart: (details) {
+                            setState(() {
+                              _currentStroke = [details.localPosition];
+                              _strokes.add(_currentStroke!);
+                            });
+                          },
+                          onPanUpdate: (details) {
+                            final pt = details.localPosition;
+                            if (_currentStroke != null) {
+                              if (_currentStroke!.isEmpty ||
+                                  (pt - _currentStroke!.last).distanceSquared >= 1.0) {
+                                setState(() {
+                                  _currentStroke!.add(pt);
+                                });
+                              }
                             }
-                          }
-                        },
-                        onPanEnd: (_) {
-                          _currentStroke = null;
-                        },
-                        child: RepaintBoundary(
-                          child: CustomPaint(
-                            size: Size.infinite,
-                            painter: _SignaturePadPainter(
-                              strokes: _strokes,
-                              color: _selectedColor,
-                              strokeWidth: _selectedStrokeWidth,
+                          },
+                          onPanEnd: (_) {
+                            _currentStroke = null;
+                          },
+                          child: RepaintBoundary(
+                            child: CustomPaint(
+                              painter: _SignaturePadPainter(
+                                strokes: _strokes,
+                                color: _selectedColor,
+                                strokeWidth: _selectedStrokeWidth,
+                              ),
                             ),
                           ),
                         ),
@@ -331,21 +338,29 @@ class _SignaturePadPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    final strokePaint = Paint()
       ..color = color
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
+    final fillPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
     for (final stroke in strokes) {
-      if (stroke.length < 2) continue;
+      if (stroke.isEmpty) continue;
+      if (stroke.length == 1) {
+        canvas.drawCircle(stroke.first, strokeWidth / 2, fillPaint);
+        continue;
+      }
       final path = Path();
       path.moveTo(stroke.first.dx, stroke.first.dy);
       for (int i = 1; i < stroke.length; i++) {
         path.lineTo(stroke[i].dx, stroke[i].dy);
       }
-      canvas.drawPath(path, paint);
+      canvas.drawPath(path, strokePaint);
     }
   }
 

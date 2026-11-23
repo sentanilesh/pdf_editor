@@ -242,21 +242,33 @@ class AnnotationPainter extends CustomPainter {
     double scaleY,
   ) {
     final avgScale = (scaleX + scaleY) / 2;
-    final paint = Paint()
+    final strokePaint = Paint()
       ..color = sig.color.withOpacity(sig.opacity)
       ..strokeWidth = sig.strokeWidth * avgScale
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
+    final fillPaint = Paint()
+      ..color = sig.color.withOpacity(sig.opacity)
+      ..style = PaintingStyle.fill;
+
     for (final stroke in sig.strokes) {
       if (stroke.isEmpty) continue;
+      if (stroke.length == 1) {
+        canvas.drawCircle(
+          Offset(stroke.first.dx * scaleX, stroke.first.dy * scaleY),
+          (sig.strokeWidth * avgScale) / 2,
+          fillPaint,
+        );
+        continue;
+      }
       final path = Path();
       path.moveTo(stroke.first.dx * scaleX, stroke.first.dy * scaleY);
       for (int i = 1; i < stroke.length; i++) {
         path.lineTo(stroke[i].dx * scaleX, stroke[i].dy * scaleY);
       }
-      canvas.drawPath(path, paint);
+      canvas.drawPath(path, strokePaint);
     }
   }
 
@@ -427,12 +439,7 @@ class AnnotationPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant AnnotationPainter oldDelegate) {
-    return annotations != oldDelegate.annotations ||
-        selectedAnnotation != oldDelegate.selectedAnnotation ||
-        liveAnnotation != oldDelegate.liveAnnotation ||
-        originalPageSize != oldDelegate.originalPageSize;
-  }
+  bool shouldRepaint(covariant AnnotationPainter oldDelegate) => true;
 }
 
 /// Lightweight painter for the live interactive layer (active stroke, shape preview, or resize/drag).
