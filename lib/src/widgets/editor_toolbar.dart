@@ -180,20 +180,20 @@ class EditorToolbar extends StatelessWidget {
                   ),
 
                   // Export Button
-                  if (onSave != null) ...[
-                    const SizedBox(width: 4),
-                    FilledButton.icon(
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        minimumSize: const Size(0, 32),
-                        textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                      ),
-                      icon: const Icon(Icons.save_outlined, size: 14),
-                      label: const Text('Export'),
-                      onPressed: onSave,
-                    ),
-                  ],
+                  // if (onSave != null) ...[
+                  //   const SizedBox(width: 4),
+                  //   FilledButton.icon(
+                  //     style: FilledButton.styleFrom(
+                  //       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  //       minimumSize: const Size(0, 32),
+                  //       textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  //     ),
+                  //     icon: const Icon(Icons.save_outlined, size: 14),
+                  //     label: const Text('Export'),
+                  //     onPressed: onSave,
+                  //   ),
+                  // ],
                 ],
               ),
             ),
